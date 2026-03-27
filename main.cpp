@@ -1,7 +1,4 @@
-#include "DBAbstractionLayer.hpp"
-#include "MapsDB.hpp"
-#include "NetworkDB.hpp"
-#include "TimeScheduleDB.hpp"
+#include <sql_cpp_wrapper/wrapper.h>
 
 void testWiFi(SQLManager* _manager)
 {
@@ -414,6 +411,7 @@ void testPolygons(SQLManager* _manager)
 
     std::cout << "---------------------\n\n\n";
 }
+
 
 int main(int argc, char* argv[])
 {

@@ -4,6 +4,7 @@
 #include <any>
 #include <cppdb/errors.h>
 #include <cppdb/frontend.h>
+#include <cppdb/driver_manager.h>
 #include <cstdint>
 #include <ctime>
 #include <iostream>
@@ -167,6 +168,7 @@ class SQLManager
 public:
     SQLManager()
     {
+        cppdb::driver_manager::instance().add_search_path(".");
         currentSession = std::make_unique<cppdb::session>();
     }
     ~SQLManager()
