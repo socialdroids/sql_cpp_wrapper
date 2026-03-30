@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.14)
+cmake_minimum_required(VERSION 3.8)
 project(sql_cpp_wrapper)
 
 include(FetchContent)
@@ -67,7 +67,8 @@ add_library(sql_cpp_wrapper::sql_cpp_wrapper ALIAS sql_wrapper)
 
 target_include_directories(
   sql_wrapper INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-                        $<BUILD_INTERFACE:${CPPDB_INCLUDE_DIR}>)
+                        $<BUILD_INTERFACE:${CPPDB_INCLUDE_DIR}>
+                      )
 
 target_link_libraries(sql_wrapper INTERFACE ${CPPDB_TARGETS})
 
