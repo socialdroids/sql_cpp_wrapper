@@ -48,7 +48,7 @@ enum class SQLDataType
     Text,        // std::string
 };
 
-std::ostream& operator<<(std::ostream& os, const SQLData& v)
+inline std::ostream& operator<<(std::ostream& os, const SQLData& v)
 {
     std::visit(
         [&os](auto&& arg) {
