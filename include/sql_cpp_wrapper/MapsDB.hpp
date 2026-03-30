@@ -70,16 +70,26 @@ public:
         : DBInterface(_manager, _table)
     {
         // insert, update, primary
-        sc.addColumn("id", SQLDataType::BigInt, false, false, true); // SERIAL
-        sc.addColumn("map_id", SQLDataType::BigInt, true, true,
-                     false); // SERIAL
-        sc.addColumn("identifier", SQLDataType::Text, true, true, false);
-        sc.addColumn("x", SQLDataType::Double, true, true, false);
-        sc.addColumn("y", SQLDataType::Double, true, true, false);
-        sc.addColumn("yaw", SQLDataType::Double, true, true, false);
+        using InsertBehavior = SQLSchema::InsertBehavior;
+        using UpdateBehavior = SQLSchema::UpdateBehavior;
 
-        sc.addColumn("created_at", SQLDataType::DateTime, true, false, false);
-        sc.addColumn("updated_at", SQLDataType::DateTime, true, true, false);
+        sc.addColumn("id", SQLDataType::BigInt, InsertBehavior::kIgnore,
+                     UpdateBehavior::kIgnore); // SERIAL
+        sc.addColumn("map_id", SQLDataType::BigInt, InsertBehavior::kUse,
+                     UpdateBehavior::kUse);
+        sc.addColumn("identifier", SQLDataType::Text, InsertBehavior::kUse,
+                     UpdateBehavior::kUse);
+        sc.addColumn("x", SQLDataType::Double, InsertBehavior::kUse,
+                     UpdateBehavior::kUse);
+        sc.addColumn("y", SQLDataType::Double, InsertBehavior::kUse,
+                     UpdateBehavior::kUse);
+        sc.addColumn("yaw", SQLDataType::Double, InsertBehavior::kUse,
+                     UpdateBehavior::kUse);
+
+        sc.addColumn("created_at", SQLDataType::DateTime, InsertBehavior::kUse,
+                     UpdateBehavior::kIgnore);
+        sc.addColumn("updated_at", SQLDataType::DateTime, InsertBehavior::kUse,
+                     UpdateBehavior::kUse);
     }
 
     ~MapWaypointsDB()
@@ -254,11 +264,19 @@ public:
         : DBInterface(_manager, _table)
     {
         // insert, update, primary
-        sc.addColumn("map_id", SQLDataType::BigInt, true, true, true);
-        sc.addColumn("polygon_id", SQLDataType::BigInt, true, true, true);
-        sc.addColumn("point_index", SQLDataType::Integer, true, true, true);
-        sc.addColumn("x", SQLDataType::Double, true, true, false);
-        sc.addColumn("y", SQLDataType::Double, true, true, false);
+        using InsertBehavior = SQLSchema::InsertBehavior;
+        using UpdateBehavior = SQLSchema::UpdateBehavior;
+
+        sc.addColumn("map_id", SQLDataType::BigInt, InsertBehavior::kUse,
+                     UpdateBehavior::kUse);
+        sc.addColumn("polygon_id", SQLDataType::BigInt, InsertBehavior::kUse,
+                     UpdateBehavior::kUse);
+        sc.addColumn("point_index", SQLDataType::Integer, InsertBehavior::kUse,
+                     UpdateBehavior::kUse);
+        sc.addColumn("x", SQLDataType::Double, InsertBehavior::kUse,
+                     UpdateBehavior::kUse);
+        sc.addColumn("y", SQLDataType::Double, InsertBehavior::kUse,
+                     UpdateBehavior::kUse);
     }
 
     ~MapPolygonPointsDB()
@@ -461,13 +479,20 @@ public:
         : DBInterface(_manager, _table), pointsDB(_pointsDBref)
     {
         // insert, update, primary
-        sc.addColumn("id", SQLDataType::BigInt, false, false, true); // SERIAL
-        sc.addColumn("map_id", SQLDataType::BigInt, true, true, false);
-        sc.addColumn("polygon_type", SQLDataType::Text, true, true, false);
-        sc.addColumn("identifier", SQLDataType::Text, true, true, false);
-        sc.addColumn("created_at", SQLDataType::TimestampTZ, true, false,
-                     false);
-        sc.addColumn("updated_at", SQLDataType::TimestampTZ, true, true, false);
+        using InsertBehavior = SQLSchema::InsertBehavior;
+        using UpdateBehavior = SQLSchema::UpdateBehavior;
+        sc.addColumn("id", SQLDataType::BigInt, InsertBehavior::kIgnore,
+                     UpdateBehavior::kIgnore); // SERIAL
+        sc.addColumn("map_id", SQLDataType::BigInt, InsertBehavior::kUse,
+                     UpdateBehavior::kUse);
+        sc.addColumn("polygon_type", SQLDataType::Text, InsertBehavior::kUse,
+                     UpdateBehavior::kUse);
+        sc.addColumn("identifier", SQLDataType::Text, InsertBehavior::kUse,
+                     UpdateBehavior::kUse);
+        sc.addColumn("created_at", SQLDataType::TimestampTZ,
+                     InsertBehavior::kUse, UpdateBehavior::kIgnore);
+        sc.addColumn("updated_at", SQLDataType::TimestampTZ,
+                     InsertBehavior::kUse, UpdateBehavior::kUse);
     }
 
     ~MapPolygonsDB()
@@ -482,7 +507,8 @@ public:
         entry.setValue("polygon_type", _polygon.polygon_type);
         if (_polygon.polygon_type == PolygonTypenames[BORDER])
         {
-            sc.updateColumn("identifier", false, false);
+            sc.updateColumn("identifier", SQLSchema::InsertBehavior::kIgnore,
+                            SQLSchema::UpdateBehavior::kIgnore);
         }
         else
         {
@@ -510,7 +536,8 @@ public:
             _polygon.setID(-1);
             ret = false;
         }
-        sc.updateColumn("identifier", true, true);
+        sc.updateColumn("identifier", SQLSchema::InsertBehavior::kUse,
+                        SQLSchema::UpdateBehavior::kUse);
 
         return ret;
     }
@@ -533,7 +560,8 @@ public:
 
         if (_polygon.polygon_type == PolygonTypenames[BORDER])
         {
-            sc.updateColumn("identifier", false, false);
+            sc.updateColumn("identifier", SQLSchema::InsertBehavior::kIgnore,
+                            SQLSchema::UpdateBehavior::kIgnore);
         }
         else
         {
@@ -560,7 +588,8 @@ public:
         {
             ret = false;
         }
-        sc.updateColumn("identifier", true, true);
+        sc.updateColumn("identifier", SQLSchema::InsertBehavior::kUse,
+                        SQLSchema::UpdateBehavior::kUse);
 
         return ret;
     }
@@ -708,25 +737,43 @@ public:
 
     {
         // insert, update, primary
-        sc.addColumn("id", SQLDataType::BigInt, false, false, true); // SERIAL
-        sc.addColumn("pgm_path", SQLDataType::Text, true, true, true);
-        sc.addColumn("yaml_path", SQLDataType::Text, true, true, true);
-        sc.addColumn("stl_path", SQLDataType::Text, true, true, true);
-        sc.addColumn("obstacles_pgm_path", SQLDataType::Text, true, true, true);
+        using InsertBehavior = SQLSchema::InsertBehavior;
+        using UpdateBehavior = SQLSchema::UpdateBehavior;
 
-        sc.addColumn("resolution", SQLDataType::Double, false, false, false);
-        sc.addColumn("width", SQLDataType::Integer, false, false, false);
-        sc.addColumn("height", SQLDataType::Integer, false, false, false);
-        sc.addColumn("negate", SQLDataType::Boolean, false, false, false);
-        sc.addColumn("occupied_thresh", SQLDataType::Double, false, false,
-                     false);
-        sc.addColumn("free_thresh", SQLDataType::Double, false, false, false);
-        sc.addColumn("origin_x", SQLDataType::Double, false, false, false);
-        sc.addColumn("origin_y", SQLDataType::Double, false, false, false);
-        sc.addColumn("origin_yaw", SQLDataType::Double, false, false, false);
+        sc.addColumn("id", SQLDataType::BigInt, InsertBehavior::kIgnore,
+                     UpdateBehavior::kIgnore); // SERIAL
+        sc.addColumn("pgm_path", SQLDataType::Text, InsertBehavior::kUse,
+                     UpdateBehavior::kUse);
+        sc.addColumn("yaml_path", SQLDataType::Text, InsertBehavior::kUse,
+                     UpdateBehavior::kUse);
+        sc.addColumn("stl_path", SQLDataType::Text, InsertBehavior::kUse,
+                     UpdateBehavior::kUse);
+        sc.addColumn("obstacles_pgm_path", SQLDataType::Text,
+                     InsertBehavior::kUse, UpdateBehavior::kUse);
 
-        sc.addColumn("created_at", SQLDataType::DateTime, true, false, false);
-        sc.addColumn("updated_at", SQLDataType::DateTime, true, true, false);
+        sc.addColumn("resolution", SQLDataType::Double, InsertBehavior::kIgnore,
+                     UpdateBehavior::kIgnore);
+        sc.addColumn("width", SQLDataType::Integer, InsertBehavior::kIgnore,
+                     UpdateBehavior::kIgnore);
+        sc.addColumn("height", SQLDataType::Integer, InsertBehavior::kIgnore,
+                     UpdateBehavior::kIgnore);
+        sc.addColumn("negate", SQLDataType::Boolean, InsertBehavior::kIgnore,
+                     UpdateBehavior::kIgnore);
+        sc.addColumn("occupied_thresh", SQLDataType::Double,
+                     InsertBehavior::kIgnore, UpdateBehavior::kIgnore);
+        sc.addColumn("free_thresh", SQLDataType::Double,
+                     InsertBehavior::kIgnore, UpdateBehavior::kIgnore);
+        sc.addColumn("origin_x", SQLDataType::Double, InsertBehavior::kIgnore,
+                     UpdateBehavior::kIgnore);
+        sc.addColumn("origin_y", SQLDataType::Double, InsertBehavior::kIgnore,
+                     UpdateBehavior::kIgnore);
+        sc.addColumn("origin_yaw", SQLDataType::Double, InsertBehavior::kIgnore,
+                     UpdateBehavior::kIgnore);
+
+        sc.addColumn("created_at", SQLDataType::DateTime, InsertBehavior::kUse,
+                     UpdateBehavior::kIgnore);
+        sc.addColumn("updated_at", SQLDataType::DateTime, InsertBehavior::kUse,
+                     UpdateBehavior::kUse);
     }
 
     ~MapsDB()

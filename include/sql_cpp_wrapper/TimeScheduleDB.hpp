@@ -47,13 +47,21 @@ public:
         : DBInterface(_manager, _table)
     {
         // insert, update, primary
-        sc.addColumn("id", SQLDataType::BigInt, false, false, true);
-        sc.addColumn("weekday", SQLDataType::Text, true, true, false);
-        sc.addColumn("start_time", SQLDataType::Time, true, true, false);
-        sc.addColumn("end_time", SQLDataType::Time, true, true, false);
-        sc.addColumn("created_at", SQLDataType::TimestampTZ, true, false,
-                     false);
-        sc.addColumn("updated_at", SQLDataType::TimestampTZ, true, true, false);
+        using InsertBehavior = SQLSchema::InsertBehavior;
+        using UpdateBehavior = SQLSchema::UpdateBehavior;
+
+        sc.addColumn("id", SQLDataType::BigInt, InsertBehavior::kIgnore,
+                     UpdateBehavior::kIgnore);
+        sc.addColumn("weekday", SQLDataType::Text, InsertBehavior::kUse,
+                     UpdateBehavior::kUse);
+        sc.addColumn("start_time", SQLDataType::Time, InsertBehavior::kUse,
+                     UpdateBehavior::kUse);
+        sc.addColumn("end_time", SQLDataType::Time, InsertBehavior::kUse,
+                     UpdateBehavior::kUse);
+        sc.addColumn("created_at", SQLDataType::TimestampTZ,
+                     InsertBehavior::kUse, UpdateBehavior::kIgnore);
+        sc.addColumn("updated_at", SQLDataType::TimestampTZ,
+                     InsertBehavior::kUse, UpdateBehavior::kUse);
     }
 
     ~RobotWorkIntervalsDB()
@@ -136,16 +144,21 @@ public:
         // Por enquanto, ID é sempre 1, porque é do próprio robô
 
         // insert, update, primary
-        sc.addColumn("id", SQLDataType::SmallInt, false, false, true);
-        sc.addColumn("configured_datetime", SQLDataType::TimestampTZ, true,
-                     true, false);
-        sc.addColumn("configured_datetime_use_utc", SQLDataType::Boolean, true,
-                     true, false);
-        sc.addColumn("automatic_time_sync_enabled", SQLDataType::Boolean, true,
-                     true, false);
-        sc.addColumn("created_at", SQLDataType::TimestampTZ, true, false,
-                     false);
-        sc.addColumn("updated_at", SQLDataType::TimestampTZ, true, true, false);
+        using InsertBehavior = SQLSchema::InsertBehavior;
+        using UpdateBehavior = SQLSchema::UpdateBehavior;
+
+        sc.addColumn("id", SQLDataType::SmallInt, InsertBehavior::kIgnore,
+                     UpdateBehavior::kIgnore);
+        sc.addColumn("configured_datetime", SQLDataType::TimestampTZ,
+                     InsertBehavior::kUse, UpdateBehavior::kUse);
+        sc.addColumn("configured_datetime_use_utc", SQLDataType::Boolean,
+                     InsertBehavior::kUse, UpdateBehavior::kUse);
+        sc.addColumn("automatic_time_sync_enabled", SQLDataType::Boolean,
+                     InsertBehavior::kUse, UpdateBehavior::kUse);
+        sc.addColumn("created_at", SQLDataType::TimestampTZ,
+                     InsertBehavior::kUse, UpdateBehavior::kIgnore);
+        sc.addColumn("updated_at", SQLDataType::TimestampTZ,
+                     InsertBehavior::kUse, UpdateBehavior::kUse);
     }
 
     ~RobotTimeDB()

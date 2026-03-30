@@ -28,10 +28,17 @@ public:
         : DBInterface(_manager, _table)
     {
         // insert, update, primary
-        sc.addColumn("ssid", SQLDataType::String, true, true, true);
-        sc.addColumn("password", SQLDataType::String, true, true, false);
-        sc.addColumn("created_at", SQLDataType::DateTime, true, false, false);
-        sc.addColumn("updated_at", SQLDataType::DateTime, true, true, false);
+        using InsertBehavior = SQLSchema::InsertBehavior;
+        using UpdateBehavior = SQLSchema::UpdateBehavior;
+
+        sc.addColumn("ssid", SQLDataType::String, InsertBehavior::kUse,
+                     UpdateBehavior::kUse);
+        sc.addColumn("password", SQLDataType::String, InsertBehavior::kUse,
+                     UpdateBehavior::kUse);
+        sc.addColumn("created_at", SQLDataType::DateTime, InsertBehavior::kUse,
+                     UpdateBehavior::kIgnore);
+        sc.addColumn("updated_at", SQLDataType::DateTime, InsertBehavior::kUse,
+                     UpdateBehavior::kUse);
     }
 
     ~WiFiDB()
@@ -130,12 +137,19 @@ public:
         : DBInterface(_manager, _table)
     {
         // insert, update, primary
-        sc.addColumn("id", SQLDataType::SmallInt, true, true, true);
-        sc.addColumn("ssid", SQLDataType::Text, true, true, false);
-        sc.addColumn("password", SQLDataType::Text, true, true, false);
-        sc.addColumn("created_at", SQLDataType::TimestampTZ, true, false,
-                     false);
-        sc.addColumn("updated_at", SQLDataType::TimestampTZ, true, true, false);
+        using InsertBehavior = SQLSchema::InsertBehavior;
+        using UpdateBehavior = SQLSchema::UpdateBehavior;
+
+        sc.addColumn("id", SQLDataType::SmallInt, InsertBehavior::kUse,
+                     UpdateBehavior::kUse);
+        sc.addColumn("ssid", SQLDataType::Text, InsertBehavior::kUse,
+                     UpdateBehavior::kUse);
+        sc.addColumn("password", SQLDataType::Text, InsertBehavior::kUse,
+                     UpdateBehavior::kUse);
+        sc.addColumn("created_at", SQLDataType::TimestampTZ,
+                     InsertBehavior::kUse, UpdateBehavior::kIgnore);
+        sc.addColumn("updated_at", SQLDataType::TimestampTZ,
+                     InsertBehavior::kUse, UpdateBehavior::kUse);
     }
 
     ~HotspotSettingsDB()

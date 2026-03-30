@@ -2,9 +2,9 @@
 #define INCLUDE_INCLUDE_DBABSTRACTIONLAYER_HPP_
 
 #include <any>
+#include <cppdb/driver_manager.h>
 #include <cppdb/errors.h>
 #include <cppdb/frontend.h>
-#include <cppdb/driver_manager.h>
 #include <cstdint>
 #include <ctime>
 #include <iostream>
@@ -77,12 +77,23 @@ public:
     {
     }
 
+    enum class InsertBehavior : bool
+    {
+        kUse,
+        kIgnore
+    };
+
+    enum class UpdateBehavior : bool
+    {
+        kUse,
+        kIgnore
+    };
+
     typedef struct Column
     {
         std::string name;
-        bool insert;
-        bool update;
-        bool isPrimary;
+        InsertBehavior insert;
+        UpdateBehavior update;
         SQLDataType type;
     } Column_t;
 
@@ -91,10 +102,10 @@ public:
         return tableName;
     };
 
-    void addColumn(std::string const& _name, SQLDataType _type, bool _insert,
-                   bool _update, bool _isPrimary)
+    void addColumn(std::string const& _name, SQLDataType _type,
+                   InsertBehavior _insert, UpdateBehavior _update)
     {
-        columns.push_back({_name, _insert, _update, _isPrimary, _type});
+        columns.push_back({_name, _insert, _update, _type});
     }
 
     const std::vector<Column_t>& getColumns() const
@@ -113,7 +124,8 @@ public:
         return out;
     }
 
-    void updateColumn(std::string const& _col, bool _insert, bool _update)
+    void updateColumn(std::string const& _col, InsertBehavior _insert,
+                      UpdateBehavior _update)
     {
         for (Column_t& col : columns)
         {
@@ -204,7 +216,8 @@ public:
         for (const auto& col : _schema->getColumns())
         {
             // Insere apenas se o schema permite e se o usuário forneceu o dado
-            if (col.insert && _entry->hasColumn(col.name))
+            if (col.insert == SQLSchema::InsertBehavior::kUse &&
+                _entry->hasColumn(col.name))
             {
                 if (!first)
                 {
@@ -266,7 +279,8 @@ public:
         {
             // Atualiza apenas se a coluna permite update e o SQLEntry contém
             // esse dado
-            if (col.update && _entry->hasColumn(col.name))
+            if (col.update == SQLSchema::UpdateBehavior::kUse &&
+                _entry->hasColumn(col.name))
             {
                 if (!firstSet)
                 {
