@@ -80,6 +80,8 @@ public:
         SQLConditionMap conditions;
         conditions["ssid"] = string(_ssid);
         vector<SQLEntry> results = db->get(&sc, cols, conditions);
+        WiFiConfig cfg;
+        cfg.password = cfg.ssid = "";
 
         if (results.size() > 1)
         {
@@ -90,7 +92,7 @@ public:
                     get<tm>(results.at(0).getValue("created_at")),
                     get<tm>(results.at(0).getValue("updated_at"))};
         }
-        return {.ssid = "", .password = ""};
+        return cfg;
     }
 
     vector<WiFiConfig> getWiFiEntries()
