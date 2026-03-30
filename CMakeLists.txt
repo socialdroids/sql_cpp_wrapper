@@ -31,44 +31,45 @@ if(NOT CPPDB_LIB)
     GIT_TAG master)
   FetchContent_MakeAvailable(cppdb_ext)
 
-  # Criamos variáveis para facilitar a exportação
   set(CPPDB_TARGETS cppdb cppdb_postgresql)
   set(CPPDB_INCLUDE_DIR ${cppdb_ext_SOURCE_DIR})
+
+  # --- TRUQUE PARA O GERADOR DE EXPRESSÃO ---
+  # Criamos uma propriedade no nível de projeto para indicar que o driver deve
+  # ser copiado
+  set_property(GLOBAL PROPERTY CPPDB_DRIVER_TARGET "cppdb_postgresql")
 else()
-  message(STATUS "cppdb encontrada no sistema: ${CPPDB_LIB}")
   set(CPPDB_TARGETS ${CPPDB_LIB})
-  set(CPPDB_INCLUDE_DIR "") # Sistema já sabe onde estão os headers
+  set(CPPDB_INCLUDE_DIR "")
+  set_property(GLOBAL PROPERTY CPPDB_DRIVER_TARGET "") # Vazio se for sistema
 endif()
 
 # --- 3. Função de Automação para o Usuário ---
 function(sql_wrapper_setup_drivers target_name)
-  # Verifica se o alvo foi criado (ou seja, se baixamos via FetchContent)
-  if(TARGET cppdb_postgresql)
+  get_property(DRIVER_TARGET GLOBAL PROPERTY CPPDB_DRIVER_TARGET)
+
+  if(DRIVER_TARGET)
+    # Usamos uma verificação mais robusta: se DRIVER_TARGET estiver preenchido,
+    # significa que nós mesmos o compilamos.
     add_custom_command(
       TARGET ${target_name}
       POST_BUILD
+      # O truque aqui é usar o comando condicional do próprio Shell/CMake para
+      # evitar que o Generator Expression quebre se o alvo sumir do escopo
       COMMAND ${CMAKE_COMMAND} -E copy_if_different
-              $<TARGET_FILE:cppdb_postgresql> $<TARGET_FILE_DIR:${target_name}>
-      COMMENT "Copiando driver do Postgres para ${target_name}...")
-  else()
-    # Se não existe, é porque o cppdb já está instalado no sistema operacional
-    # do usuário e o SO já sabe onde encontrar o driver dinamicamente. Não
-    # precisamos fazer nada!
-    message(
-      STATUS
-        "Alvo 'cppdb_postgresql' não encontrado internamente. Assumindo instalação de sistema."
+              $<TARGET_FILE:${DRIVER_TARGET}> $<TARGET_FILE_DIR:${target_name}>
+      COMMENT "Copiando driver SQL compilado para ${target_name}..."
+      COMMAND_EXPAND_LISTS # Ajuda na avaliação das expressões
     )
   endif()
 endfunction()
-
 # --- 4. Definição da sua Biblioteca ---
 add_library(sql_wrapper INTERFACE)
 add_library(sql_cpp_wrapper::sql_cpp_wrapper ALIAS sql_wrapper)
 
 target_include_directories(
   sql_wrapper INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-                        $<BUILD_INTERFACE:${CPPDB_INCLUDE_DIR}>
-                      )
+                        $<BUILD_INTERFACE:${CPPDB_INCLUDE_DIR}>)
 
 target_link_libraries(sql_wrapper INTERFACE ${CPPDB_TARGETS})
 
