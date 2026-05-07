@@ -10,6 +10,7 @@
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
+#include <string>
 #include <type_traits>
 #include <unordered_map>
 #include <variant>
@@ -187,23 +188,33 @@ public:
     {
     }
 
-    bool init(std::string _dbname, std::string _user, std::string _pwd,
-              std::string _host = "localhost")
+    bool isConnected() const
     {
-        std::stringstream config;
-        config << "postgresql:dbname=" << _dbname << ";user=" << _user
-               << ";password=" << _pwd << ";host=" << _host;
+        return currentSession->is_open();
+    }
 
+    bool connect()
+    {
         try
         {
-            currentSession->open(config.str());
+            currentSession->open(currentConfig.str());
         }
         catch (cppdb::cppdb_error const& e)
         {
             std::cerr << "Connection Error: " << e.what() << std::endl;
+            return false;
         }
 
         return currentSession->is_open();
+    }
+
+    bool init(std::string _dbname, std::string _user, std::string _pwd,
+              std::string _host = "localhost")
+    {
+        currentConfig << "postgresql:dbname=" << _dbname << ";user=" << _user
+                      << ";password=" << _pwd << ";host=" << _host;
+
+        return connect();
     }
 
     bool insert(SQLSchema* _schema, SQLEntry* _entry)
@@ -469,6 +480,14 @@ public:
         catch (cppdb::cppdb_error const& e)
         {
             std::cerr << "Custom Query ERROR: " << e.what() << std::endl;
+
+            if (std::string(e.what()).find("execution failed") !=
+                    std::string::npos &&
+                currentSession->is_open())
+            {
+                std::cerr << "Session invalid! Closing.." << std::endl;
+                currentSession->close();
+            }
             stat.reset();
             return entries;
         }
@@ -572,11 +591,16 @@ public:
 
 private:
     std::unique_ptr<cppdb::session> currentSession;
+    std::stringstream currentConfig;
     cppdb::statement stat;
 
     void prepare(std::string const& _statement)
     {
-        // std::cout << "\t-- Preparing <" << _statement << ">\n";
+        if (!currentSession->is_open() && !connect())
+        {
+            return;
+        }
+
         if (!stat.empty())
         {
             stat.reset();
@@ -620,6 +644,11 @@ private:
 
     cppdb::result runQuery()
     {
+        if (!currentSession->is_open() && !connect())
+        {
+            return cppdb::result();
+        }
+
         try
         {
             cppdb::result res = stat.query();
@@ -632,12 +661,24 @@ private:
         catch (cppdb::cppdb_error const& e)
         {
             std::cerr << "Statement Query ERROR: " << e.what() << std::endl;
+            if (std::string(e.what()).find("execution failed") !=
+                    std::string::npos &&
+                currentSession->is_open())
+            {
+                std::cerr << "Session invalid! Closing.." << std::endl;
+                currentSession->close();
+            }
             return cppdb::result();
         }
     }
 
     int run()
     {
+        if (!currentSession->is_open() && !connect())
+        {
+            return -1;
+        }
+
         try
         {
             stat.exec();
@@ -647,6 +688,14 @@ private:
         catch (cppdb::cppdb_error const& e)
         {
             std::cerr << "Statement Run ERROR: " << e.what() << std::endl;
+
+            if (std::string(e.what()).find("execution failed") !=
+                    std::string::npos &&
+                currentSession->is_open())
+            {
+                std::cerr << "Session invalid! Closing.." << std::endl;
+                currentSession->close();
+            }
             return -1;
         }
     }

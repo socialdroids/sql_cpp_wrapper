@@ -1,5 +1,8 @@
 #include <sql_cpp_wrapper/wrapper.h>
 
+#include <chrono>
+#include <thread>
+
 void testWiFi(SQLManager* _manager)
 {
     WiFiDB wifiDB(_manager, "wifi_profiles");
@@ -412,21 +415,46 @@ void testPolygons(SQLManager* _manager)
     std::cout << "---------------------\n\n\n";
 }
 
-
 int main(int argc, char* argv[])
 {
     SQLManager dbManager;
     bool ok = dbManager.init("setup_management", "postgres", "postgres");
 
-    if (ok)
+    while (ok == false)
     {
-        testWiFi(&dbManager);
-        testHotspot(&dbManager);
-        testWorkInterval(&dbManager);
-        testRobotTime(&dbManager);
-        testMaps(&dbManager);
-        testWaypoints(&dbManager);
-        testPolygons(&dbManager);
+        ok = dbManager.connect();
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+    }
+
+    while (1)
+    {
+        if (dbManager.isConnected())
+        {
+            testWiFi(&dbManager);
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+
+            testHotspot(&dbManager);
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+
+            testWorkInterval(&dbManager);
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+
+            testRobotTime(&dbManager);
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+
+            testMaps(&dbManager);
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+
+            testWaypoints(&dbManager);
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+
+            testPolygons(&dbManager);
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+        }
+        else {
+            dbManager.connect();
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+        }
     }
 
     return 0;
